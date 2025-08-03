@@ -52,38 +52,81 @@ export default function HabitCalendarSection({ userId }: { userId: string }) {
             key={habit.id}
             className="min-w-[320px] bg-white rounded-lg border border-gray-200 p-3 shadow-sm"
           >
-            <h3 className="text-center text-purple-600 font-semibold mb-2">
-              {habit.name}
-            </h3>
+            <h3 className="text-center text-purple-600 font-semibold mb-2">{habit.name}</h3>
 
             <DayPicker
-              mode="multiple"
               showOutsideDays
               fixedWeeks
+              mode="multiple"
               selected={markedDates[habit.id]}
               modifiers={{ completed: markedDates[habit.id] || [] }}
               modifiersClassNames={{ completed: 'green-dot' }}
+              className="text-sm"
             />
           </div>
         ))}
       </div>
 
-      {/* Green Dot Styling */}
+      {/* Scoped calendar fixes */}
       <style>{`
+        .rdp {
+          width: 100%;
+        }
+
+        .rdp-month {
+          width: 100%;
+        }
+
+        .rdp-table {
+          width: 100%;
+          table-layout: fixed;
+        }
+
+        .rdp-head {
+          text-align: center;
+        }
+
+        .rdp-head_row {
+          display: table-row;
+        }
+
+        .rdp-head_cell {
+          display: table-cell;
+          font-weight: 500;
+          padding: 6px 0;
+        }
+
+        .rdp-row {
+          display: table-row;
+        }
+
+        .rdp-cell {
+          display: table-cell;
+          vertical-align: middle;
+          height: 40px;
+          text-align: center;
+          position: relative;
+        }
+
+        .rdp-day {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 32px;
+          height: 32px;
+          border-radius: 9999px;
+          position: relative;
+        }
+
         .green-dot::after {
           content: '';
           position: absolute;
           bottom: 4px;
-          left: 50%;
-          transform: translateX(-50%);
+          right: 4px;
           width: 6px;
           height: 6px;
           background-color: #22c55e;
           border-radius: 9999px;
-        }
-
-        .rdp-day {
-          position: relative;
         }
       `}</style>
     </div>

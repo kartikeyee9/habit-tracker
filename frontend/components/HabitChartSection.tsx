@@ -1,51 +1,71 @@
-'use client';
 import { useEffect, useState } from 'react';
-import api from '../lib/api';
 import HabitChart from './HabitChart';
+import api from '../lib/api';
 
 type Habit = {
   id: string;
   name: string;
 };
 
-type WeeklyData = {
-  week: string;
-  count: number;
-};
-
 export default function HabitChartSection({ userId }: { userId: string }) {
-  const [habitData, setHabitData] = useState<{ habit: Habit; data: WeeklyData[] }[]>([]);
+  const [habits, setHabits] = useState<Habit[]>([]);
+  const [selectedHabit, setSelectedHabit] = useState<string | null>(null);
+  const [chartData, setChartData] = useState<{ date: string; count: number }[]>([]);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchHabits = async () => {
+      const res = await api.get(`/habits/${userId}`);
+      setHabits(res.data);
+    };
+    fetchHabits();
+  }, [userId]);
+
+  useEffect(() => {
+    if (!selectedHabit) return;
+
+    const fetchWeeklyData = async () => {
       try {
-        const habitsRes = await api.get(`/habits/${userId}`);
-        const habits = habitsRes.data;
-
-        const result = await Promise.all(
-          habits.map(async (habit: Habit) => {
-            const res = await api.get(`/habits/${habit.id}/checkins/weekly`);
-            return { habit, data: res.data };
-          })
+        const res = await api.get(`/habits/${selectedHabit}/checkins/weekly`);
+        // ✅ Fix: extract the weeklyCounts array
+        setChartData(
+          res.data.weeklyCounts.map((entry: { day: string; count: number }) => ({
+            date: entry.day,
+            count: entry.count,
+          }))
         );
-
-        setHabitData(result);
       } catch (err) {
-        console.error('Error loading chart data:', err);
+        console.error('Failed to fetch weekly check-ins:', err);
+        setChartData([]);
       }
     };
 
-    fetchData();
-  }, [userId]);
+    fetchWeeklyData();
+  }, [selectedHabit]);
 
   return (
-    <div className="mt-10">
-      <h2 className="text-xl font-bold text-purple-700 mb-4">📊 Weekly Progress Charts</h2>
-      <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2">
-        {habitData.map(({ habit, data }) => (
-          <HabitChart key={habit.id} data={data} habitName={habit.name} />
+    <div className="mt-10 bg-white rounded-xl shadow p-6">
+      <h2 className="text-xl font-bold text-purple-700 mb-4">📊 Weekly Progress</h2>
+
+      <select
+        className="mb-4 px-4 py-2 border rounded w-full sm:w-auto"
+        onChange={(e) => setSelectedHabit(e.target.value)}
+        defaultValue=""
+      >
+        <option value="" disabled>
+          Select a habit to view chart
+        </option>
+        {habits.map((habit) => (
+          <option key={habit.id} value={habit.id}>
+            {habit.name}
+          </option>
         ))}
-      </div>
+      </select>
+
+      {chartData.length > 0 ? (
+        <HabitChart data={chartData} />
+      ) : (
+        <p className="text-gray-500 text-sm">No data to display.</p>
+      )}
     </div>
   );
 }

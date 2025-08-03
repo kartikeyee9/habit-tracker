@@ -1,6 +1,9 @@
 const express = require("express");
 const router = express.Router();
-const prisma = require("./prismaClient");
+//const prisma = require("./prismaClient");
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
+
 
 // Test route
 router.get("/test", (req,res) => {
@@ -174,7 +177,7 @@ router.get('/habits/:id/history', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch history' });
   }
 });
-
+/*
 // Get all habits for a user (for calendar view)
 router.get("/habits/:userId", async (req, res) => {
   const { userId } = req.params;
@@ -192,7 +195,28 @@ router.get("/habits/:userId", async (req, res) => {
     console.error(err);
     res.status(500).json({ error: "Failed to fetch habits" });
   }
+}); */
+
+router.get("/habits/:userId", async (req, res) => {
+  const { userId } = req.params;
+  console.log("Fetching habits for user:", userId); // 👈 LOG
+
+  try {
+    const habits = await prisma.habit.findMany({
+      where: { userId },
+      include: {
+        completions: true,
+      },
+    });
+
+    console.log("Habits returned:", habits); // 👈 LOG
+    res.json(habits);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch habits" });
+  }
 });
+
 
 // Get all completion dates for a habit
 router.get('/habits/:habitId/history', async (req, res) => {
@@ -212,48 +236,46 @@ router.get('/habits/:habitId/history', async (req, res) => {
   }
 });
 
-// GET /habits/:habitId/checkins/weekly
 router.get('/habits/:habitId/checkins/weekly', async (req, res) => {
   const { habitId } = req.params;
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  // Start from 6 weeks ago
-  const start = new Date(today);
-  start.setDate(start.getDate() - 7 * 6);
-
   try {
-    const checkins = await prisma.habitCheck.findMany({
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const oneWeekAgo = new Date(today);
+    oneWeekAgo.setDate(today.getDate() - 6); // Last 7 days
+
+    const completions = await prisma.habitCompletion.findMany({
       where: {
         habitId,
         date: {
-          gte: start,
+          gte: oneWeekAgo,
           lte: today,
         },
       },
-      orderBy: { date: 'asc' },
     });
 
-    const weeklyCounts = {};
+    const counts = [0, 0, 0, 0, 0, 0, 0]; // Sunday to Saturday
+    completions.forEach((comp) => {
+      const day = new Date(comp.date).getDay();
+      counts[day]++;
+    });
 
-    for (const checkin of checkins) {
-      const date = new Date(checkin.date);
-      const weekYear = getWeekYear(date); // e.g. '2025-W31'
-      weeklyCounts[weekYear] = (weeklyCounts[weekYear] || 0) + 1;
-    }
-
-    const result = Object.entries(weeklyCounts).map(([week, count]) => ({
-      week,
+    const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const weeklyCounts = counts.map((count, i) => ({
+      day: daysOfWeek[i],
       count,
     }));
 
-    res.json(result);
+    res.json({ weeklyCounts });
   } catch (err) {
-    console.error('Error fetching weekly check-ins:', err);
+    console.error('❌ Error in /habits/:habitId/checkins/weekly:', err);
     res.status(500).json({ error: 'Failed to fetch weekly check-ins' });
   }
 });
+
+
 
 // Helper to get ISO week label like '2025-W31'
 function getWeekYear(date) {

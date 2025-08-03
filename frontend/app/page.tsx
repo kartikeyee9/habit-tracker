@@ -11,16 +11,17 @@ export default function Home() {
   const [view, setView] = useState<'list' | 'calendar'>('list');
 
   return (
-    <main className="p-6">
+    <main className="p-6 max-w-4xl mx-auto">
       <h1 className="text-3xl font-bold text-center text-purple-700 mb-6">
         🧠 Habit Tracker Dashboard
       </h1>
 
+      {/* View toggle buttons */}
       <div className="flex justify-center mb-6">
         <button
           onClick={() => setView('list')}
           className={`px-4 py-2 rounded-l ${
-            view === 'list' ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-700'
+            view === 'list' ? 'bg-purple-600 text-white' : 'bg-gray-200'
           }`}
         >
           📋 List View
@@ -28,30 +29,24 @@ export default function Home() {
         <button
           onClick={() => setView('calendar')}
           className={`px-4 py-2 rounded-r ${
-            view === 'calendar' ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-700'
+            view === 'calendar' ? 'bg-purple-600 text-white' : 'bg-gray-200'
           }`}
         >
           📅 Calendar View
         </button>
       </div>
 
+      {/* Common Form */}
       <HabitForm userId={DUMMY_USER_ID} />
-      {view === 'list' && <HabitChartSection userId={DUMMY_USER_ID} className="mb-6" />}
 
+      {/* Conditionally render list or calendar */}
       {view === 'list' ? (
         <>
-          <h2 className="text-xl font-semibold text-center text-gray-800 mb-2">
-            📋 Your Habits
-          </h2>
           <HabitList userId={DUMMY_USER_ID} />
+          <HabitChartSection userId={DUMMY_USER_ID} /> {/* ✅ fixed */}
         </>
       ) : (
-        <>
-          <h2 className="text-xl font-semibold text-center text-gray-800 mb-2">
-            📅 Calendar Overview
-          </h2>
-          <HabitCalendarSection userId={DUMMY_USER_ID} />
-        </>
+        <HabitCalendarSection userId={DUMMY_USER_ID} />
       )}
     </main>
   );

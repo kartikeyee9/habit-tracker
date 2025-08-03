@@ -1,21 +1,29 @@
 'use client';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts';
 
-type HabitChartProps = {
-  data: { week: string; count: number }[];
-  habitName: string;
-};
+type WeeklyData = { date: string; count: number }[];
 
-export default function HabitChart({ data, habitName }: HabitChartProps) {
+export default function HabitChart({ data }: { data: WeeklyData }) {
   return (
-    <div className="bg-white p-4 rounded shadow w-full">
-      <h3 className="text-purple-700 font-semibold mb-2">{habitName}</h3>
-      <ResponsiveContainer width="100%" height={200}>
+    <div className="w-full h-60 bg-gray-50 rounded-lg p-2 border border-gray-200">
+      <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data}>
-          <XAxis dataKey="week" />
-          <YAxis />
-          <Tooltip />
-          <Bar dataKey="count" fill="#a855f7" />
+          <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
+          <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+          <YAxis allowDecimals={false} />
+          <Tooltip
+            contentStyle={{ backgroundColor: '#f9f9f9', borderColor: '#ddd' }}
+            labelStyle={{ fontWeight: 'bold' }}
+          />
+          <Bar dataKey="count" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>
