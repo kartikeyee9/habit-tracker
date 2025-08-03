@@ -2,32 +2,27 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../lib/api';
+import { DayPicker } from 'react-day-picker';
+import 'react-day-picker/dist/style.css';
 
-export default function HabitDrawer({ habitId, habitName }: { habitId: string; habitName: string }) {
+export default function HabitDrawer({
+  habitId,
+  habitName,
+}: {
+  habitId: string;
+  habitName: string;
+}) {
   const [isOpen, setIsOpen] = useState(false);
-  const [completionDates, setCompletionDates] = useState<Set<string>>(new Set());
+  const [dates, setDates] = useState<Date[]>([]);
 
   const fetchHistory = async () => {
     const res = await api.get(`/habits/${habitId}/history`);
-    const formattedDates = res.data.dates.map((d: string) => new Date(d).toISOString().slice(0, 10));
-    setCompletionDates(new Set(formattedDates));
+    setDates(res.data.dates.map((d: string) => new Date(d)));
   };
 
   useEffect(() => {
     if (isOpen) fetchHistory();
   }, [isOpen]);
-
-  // Generate the past 30 days
-  const getLast30Days = () => {
-    const days = [];
-    const today = new Date();
-    for (let i = 29; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(today.getDate() - i);
-      days.push(d);
-    }
-    return days;
-  };
 
   return (
     <>
@@ -52,7 +47,7 @@ export default function HabitDrawer({ habitId, habitName }: { habitId: string; h
 
             {/* Drawer */}
             <motion.div
-              className="fixed top-0 right-0 w-80 h-full bg-white shadow-lg z-50 p-4 overflow-y-auto"
+              className="fixed top-0 right-0 w-[22rem] sm:w-96 h-full bg-white shadow-lg z-50 p-5 overflow-y-auto"
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
@@ -63,27 +58,25 @@ export default function HabitDrawer({ habitId, habitName }: { habitId: string; h
                 <button onClick={() => setIsOpen(false)}>✕</button>
               </div>
 
-              {completionDates.size === 0 ? (
+              {dates.length === 0 ? (
                 <p className="text-gray-500">No completions yet.</p>
               ) : (
-                <div>
-                  <p className="text-sm text-gray-600 mb-2">Last 30 Days</p>
-                  <div className="grid grid-cols-7 gap-2">
-                    {getLast30Days().map((day) => {
-                      const dateStr = day.toISOString().slice(0, 10);
-                      const isCompleted = completionDates.has(dateStr);
-
-                      return (
-                        <div
-                          key={dateStr}
-                          title={day.toDateString()}
-                          className={`w-4 h-4 rounded-full ${
-                            isCompleted ? 'bg-green-500' : 'bg-gray-300'
-                          }`}
-                        ></div>
-                      );
-                    })}
-                  </div>
+                <div className="mt-4">
+                  <DayPicker
+                    mode="month"
+                    showOutsideDays
+                    selected={dates}
+                    modifiers={{
+                      completed: (day) =>
+                        dates.some(
+                          (d) => d.toDateString() === day.toDateString()
+                        ),
+                    }}
+                    modifiersClassNames={{
+                      completed: 'bg-green-500 text-white rounded-full',
+                      today: 'border border-blue-500',
+                    }}
+                  />
                 </div>
               )}
             </motion.div>

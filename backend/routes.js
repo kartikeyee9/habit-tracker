@@ -175,6 +175,95 @@ router.get('/habits/:id/history', async (req, res) => {
   }
 });
 
+// Get all habits for a user (for calendar view)
+router.get("/habits/:userId", async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const habits = await prisma.habit.findMany({
+      where: { userId },
+      include: {
+        completions: true, // include completion data if needed
+      },
+    });
+
+    res.json(habits);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch habits" });
+  }
+});
+
+// Get all completion dates for a habit
+router.get('/habits/:habitId/history', async (req, res) => {
+  const { habitId } = req.params;
+
+  try {
+    const completions = await prisma.habitCompletion.findMany({
+      where: { habitId },
+      orderBy: { date: 'asc' },
+    });
+
+    const dates = completions.map((c) => c.date.toISOString().split('T')[0]); // return as ISO date strings
+    res.json({ dates });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to fetch habit history' });
+  }
+});
+
+// GET /habits/:habitId/checkins/weekly
+router.get('/habits/:habitId/checkins/weekly', async (req, res) => {
+  const { habitId } = req.params;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  // Start from 6 weeks ago
+  const start = new Date(today);
+  start.setDate(start.getDate() - 7 * 6);
+
+  try {
+    const checkins = await prisma.habitCheck.findMany({
+      where: {
+        habitId,
+        date: {
+          gte: start,
+          lte: today,
+        },
+      },
+      orderBy: { date: 'asc' },
+    });
+
+    const weeklyCounts = {};
+
+    for (const checkin of checkins) {
+      const date = new Date(checkin.date);
+      const weekYear = getWeekYear(date); // e.g. '2025-W31'
+      weeklyCounts[weekYear] = (weeklyCounts[weekYear] || 0) + 1;
+    }
+
+    const result = Object.entries(weeklyCounts).map(([week, count]) => ({
+      week,
+      count,
+    }));
+
+    res.json(result);
+  } catch (err) {
+    console.error('Error fetching weekly check-ins:', err);
+    res.status(500).json({ error: 'Failed to fetch weekly check-ins' });
+  }
+});
+
+// Helper to get ISO week label like '2025-W31'
+function getWeekYear(date) {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+  return `${d.getUTCFullYear()}-W${weekNo}`;
+}
+
 
 
 module.exports = router;
