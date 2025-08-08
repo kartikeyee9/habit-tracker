@@ -1,6 +1,6 @@
 # 🧠 Habit Tracker
 
-A beautifully designed full-stack habit tracker built with Next.js 14 (App Router), Tailwind CSS, Prisma, and NextAuth. Track your habits visually with calendars, charts, and a polished UI. Users can securely log in with email and get personalized dashboards.
+A full-stack habit tracker built with Next.js 14 (App Router), Tailwind CSS, Prisma, and NextAuth. Track your habits visually with calendars, charts, and a polished UI. Users can securely log in with email and get personalized dashboards.
 
 ---
 
