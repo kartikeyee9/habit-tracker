@@ -35,7 +35,7 @@ A beautifully designed full-stack habit tracker built with Next.js 14 (App Route
 git clone https://github.com/kartikeyee9/habit-tracker.git
 cd habit-tracker/frontend
 
-2. Install Dependencies 
-
+### 2. Install Dependencies 
+```bash
 npm install 
 
