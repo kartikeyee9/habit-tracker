@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "typeRoots": ["./node_modules/@types", "./node_modules/.prisma/client"],
     "target": "ES2017",
     "lib": [
       "dom",

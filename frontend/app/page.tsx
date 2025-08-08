@@ -1,22 +1,33 @@
 'use client';
+import { useSession } from 'next-auth/react';
 import { useState } from 'react';
 import HabitForm from '../components/HabitForm';
 import HabitList from '../components/HabitList';
 import HabitCalendarSection from '../components/HabitCalendarSection';
 import HabitChartSection from '../components/HabitChartSection';
 
-const DUMMY_USER_ID = 'cmdkvo40o0000ppn5iiggnmbr';
-
 export default function Home() {
+  const { data: session, status } = useSession();
   const [view, setView] = useState<'list' | 'calendar'>('list');
 
-  return (
-    <main className="p-6 max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold text-center text-purple-700 mb-6">
-        🧠 Habit Tracker Dashboard
-      </h1>
+  if (status === 'loading') {
+    return <p className="text-center text-sm text-gray-500 mt-8">Loading...</p>;
+  }
 
-      {/* View toggle buttons */}
+  if (!session) {
+    return (
+      <div className="text-center mt-16">
+        <h2 className="text-xl font-semibold text-gray-700 mb-4">
+          Please log in to access your dashboard
+        </h2>
+      </div>
+    );
+  }
+
+  const userId = session.user?.id || session.user?.email || 'anonymous';
+
+  return (
+    <div className="py-6">
       <div className="flex justify-center mb-6">
         <button
           onClick={() => setView('list')}
@@ -36,18 +47,14 @@ export default function Home() {
         </button>
       </div>
 
-      {/* Common Form */}
-      <HabitForm userId={DUMMY_USER_ID} />
+      <HabitForm userId={userId} />
+      <HabitChartSection userId={userId} />
 
-      {/* Conditionally render list or calendar */}
       {view === 'list' ? (
-        <>
-          <HabitList userId={DUMMY_USER_ID} />
-          <HabitChartSection userId={DUMMY_USER_ID} /> {/* ✅ fixed */}
-        </>
+        <HabitList userId={userId} />
       ) : (
-        <HabitCalendarSection userId={DUMMY_USER_ID} />
+        <HabitCalendarSection userId={userId} />
       )}
-    </main>
+    </div>
   );
 }

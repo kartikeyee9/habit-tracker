@@ -2,6 +2,9 @@
   "name": "frontend",
   "version": "0.1.0",
   "private": true,
+  "prisma": {
+    "schema": "./prisma/schema.prisma"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -9,10 +12,15 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@auth/prisma-adapter": "^2.10.0",
     "@headlessui/react": "^2.2.6",
+    "@prisma/client": "^6.13.0",
     "axios": "^1.11.0",
     "framer-motion": "^12.23.9",
     "next": "15.4.4",
+    "next-auth": "^4.24.11",
+    "nodemailer": "^6.10.1",
+    "prisma": "^6.13.0",
     "react": "19.1.0",
     "react-calendar": "^6.0.0",
     "react-day-picker": "^9.8.1",
